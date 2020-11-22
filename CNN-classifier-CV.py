@@ -99,3 +99,32 @@ history = model.fit_generator(
             epochs=20,
             verbose=1)
 
+# 啓動模型前導入依賴庫
+import numpy as np
+from google.colab import files
+from keras.preprocessing import image
+
+# 此調用阻塞到用戶上傳測試圖片爲止
+uploaded = files.upload()
+
+for fn in uploaded.keys():
+ 
+  # 將圖像轉換爲我們的 CNN+DNN 能夠處理的格式
+  path = '/content/' + fn
+  img = image.load_img(path, target_size=(300, 300))
+  x = image.img_to_array(img)
+  # 增加一個維度
+  x = np.expand_dims(x, axis=0)
+  # 垂直堆疊
+  image_tensor = np.vstack([x])
+  
+  # 預測未知圖片的分類
+  classes = model.predict(image_tensor)
+  print(classes)
+  print(classes[0])
+  if classes[0]>0.5:
+    print(fn + " is a human")
+  else:
+    print(fn + " is a horse")
+    
+   
