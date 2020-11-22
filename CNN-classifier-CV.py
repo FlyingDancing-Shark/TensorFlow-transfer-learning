@@ -46,6 +46,7 @@ x = layers.Dense(1, activation='sigmoid')(x)
 # CNN 與 DNN 連接起來
 model = Model(pre_trained_model.input, x)
 
+# 編譯模型；學習率設定爲 0.0001；指定損失函數和性能指標
 model.compile(optimizer=RMSprop(lr=0.0001),
               loss='binary_crossentropy',
               metrics=['acc'])
