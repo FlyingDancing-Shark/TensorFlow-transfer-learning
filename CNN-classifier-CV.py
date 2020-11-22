@@ -29,3 +29,23 @@ for layer in pre_trained_model.layers:
 # 列出摘要
 pre_trained_model.summary()
 
+# 裁切卷積網絡到 mixed7 這一層
+last_layer = pre_trained_model.get_layer('mixed7')
+print('last layer output shape: ', last_layer.output_shape)
+last_output = last_layer.output
+
+# 平坦化裁切的 CNN
+x = layers.Flatten()(last_output)
+# CNN 後面增加一層隱藏的 DNN，帶有1024個神經元，激活函數爲校正線性單元（RELU） 
+x = layers.Dense(1024, activation='relu')(x)
+
+x = layers.Dropout(0.2)(x)
+
+# 最後的輸出層只有一個神經元
+x = layers.Dense(1, activation='sigmoid')(x)
+# CNN 與 DNN 連接起來
+model = Model(pre_trained_model.input, x)
+
+model.compile(optimizer=RMSprop(lr=0.0001),
+              loss='binary_crossentropy',
+              metrics=['acc'])
