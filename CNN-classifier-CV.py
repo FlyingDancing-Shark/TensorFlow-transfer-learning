@@ -49,3 +49,53 @@ model = Model(pre_trained_model.input, x)
 model.compile(optimizer=RMSprop(lr=0.0001),
               loss='binary_crossentropy',
               metrics=['acc'])
+
+# 下載、解壓訓練與驗證數據集到指定目錄
+training_url = "https://storage.googleapis.com/laurencemoroney-blog.appspot.com/horse-or-human.zip"
+training_file_name = "horse-or-human.zip"
+training_dir = 'horse-or-human/training/'
+urllib.request.urlretrieve(training_url, training_file_name)
+zip_ref = zipfile.ZipFile(training_file_name, 'r')
+zip_ref.extractall(training_dir)
+zip_ref.close()
+
+validation_url = "https://storage.googleapis.com/laurencemoroney-blog.appspot.com/validation-horse-or-human.zip"
+validation_file_name = "validation-horse-or-human.zip"
+validation_dir = 'horse-or-human/validation/'
+urllib.request.urlretrieve(validation_url, validation_file_name)
+
+zip_ref = zipfile.ZipFile(validation_file_name, 'r')
+zip_ref.extractall(validation_dir)
+zip_ref.close()
+
+
+# 通過 ImageDataGenerator 執行訓練數據集的前處理：圖像的歸一化和增強
+train_datagen = ImageDataGenerator(rescale=1./255.,
+                                   rotation_range=40,
+                                   width_shift_range=0.2,
+                                   height_shift_range=0.2,
+                                   shear_range=0.2,
+                                   zoom_range=0.2,
+                                   horizontal_flip=True)
+
+# 歸一化驗證數據集
+test_datagen = ImageDataGenerator(rescale=1.0/255.)
+
+# 按批次流入訓練圖片，每批 20 張
+train_generator = train_datagen.flow_from_directory(training_dir,
+                                                    batch_size=20,
+                                                    class_mode='binary',
+                                                    target_size=(150, 150))
+
+
+validation_generator =  test_datagen.flow_from_directory(validation_dir,
+                                                         batch_size=20,
+                                                         class_mode='binary',
+                                                         target_size=(150, 150))
+# 前面 2 個生成器分別作爲模型的訓練和驗證數據集
+history = model.fit_generator(
+            train_generator,
+            validation_data=validation_generator,
+            epochs=20,
+            verbose=1)
+
